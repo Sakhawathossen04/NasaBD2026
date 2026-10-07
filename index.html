@@ -7,9 +7,7 @@
   <title>TerraPulse</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     html, body {
       width: 100%;
@@ -20,87 +18,21 @@
       font-family: Arial, Helvetica, sans-serif;
     }
 
-    /* OUR CLEAN HEADER */
-    .custom-header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 86px;
-      display: flex;
-      align-items: center;
-      padding: 0 38px;
-      background: #000;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-      z-index: 1000;
-    }
-
-    .brand-name {
-      color: #fff;
-      font-size: 36px;
-      font-weight: 700;
-      letter-spacing: 0.3px;
-      margin-right: 42px;
-      white-space: nowrap;
-    }
-
-    .nav {
-      display: flex;
-      align-items: center;
-      gap: 34px;
-    }
-
-    .nav button {
-      appearance: none;
-      border: 0;
-      outline: 0;
-      background: transparent;
-      color: #fff;
-      font-size: 18px;
-      font-weight: 700;
-      cursor: pointer;
-      padding: 8px 0;
-      opacity: 0.95;
-    }
-
-    .nav button:hover {
-      opacity: 1;
-      text-decoration: underline;
-      text-underline-offset: 6px;
-    }
-
     /*
-      Instead of placing black masks over NASA's header,
-      we crop the top part of the embedded NASA page out of view.
+      IMPORTANT:
+      Keep the NASA iframe at its ORIGINAL browser viewport size.
+      No negative top, no enlarged height, no transform.
+      This preserves NASA Eyes' normal 3D camera framing.
     */
-    .eyes-viewport {
-      position: fixed;
-      top: 86px;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      overflow: hidden;
-      background: #000;
-    }
-
     #nasa-eyes {
-      position: absolute;
-      left: 0;
-
-      /*
-        Move NASA's own top header + startup headline above
-        our visible viewport, so no black overlay boxes are needed.
-      */
-      top: -175px;
-
-      width: 100%;
-      height: calc(100% + 175px);
-
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
       border: 0;
       display: block;
       background: #000;
 
-      /* Hide NASA startup splash until main view has loaded */
       opacity: 0;
       visibility: hidden;
       transition: opacity 0.35s ease;
@@ -111,12 +43,74 @@
       visibility: visible;
     }
 
-    /* Simple clean black screen while NASA loads in background */
+    /*
+      One single clean header.
+      Its height also covers NASA's own top navigation / event headline
+      underneath, without changing the iframe dimensions.
+    */
+    .custom-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 132px;
+
+      display: flex;
+      align-items: center;
+
+      padding: 0 42px;
+      background: #000;
+
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      z-index: 1000000;
+    }
+
+    .brand-name {
+      color: #fff;
+      font-size: 38px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+      margin-right: 48px;
+      white-space: nowrap;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 38px;
+    }
+
+    .nav button {
+      appearance: none;
+      border: 0;
+      outline: 0;
+      background: transparent;
+
+      color: #fff;
+      font-size: 19px;
+      font-weight: 700;
+
+      padding: 10px 0;
+      cursor: pointer;
+      opacity: 0.96;
+    }
+
+    .nav button:hover {
+      opacity: 1;
+      text-decoration: underline;
+      text-underline-offset: 7px;
+    }
+
+    /*
+      Black shield exists only while NASA initializes.
+      It disappears before the iframe is revealed.
+    */
     #startup-shield {
-      position: absolute;
+      position: fixed;
       inset: 0;
       background: #000;
-      z-index: 5;
+      z-index: 999999;
+
       opacity: 1;
       visibility: visible;
       transition: opacity 0.3s ease, visibility 0.3s ease;
@@ -130,30 +124,21 @@
 
     @media (max-width: 800px) {
       .custom-header {
-        height: 76px;
+        height: 112px;
         padding: 0 18px;
       }
 
       .brand-name {
-        font-size: 26px;
+        font-size: 28px;
         margin-right: 24px;
       }
 
       .nav {
-        gap: 18px;
+        gap: 20px;
       }
 
       .nav button {
         font-size: 14px;
-      }
-
-      .eyes-viewport {
-        top: 76px;
-      }
-
-      #nasa-eyes {
-        top: -165px;
-        height: calc(100% + 165px);
       }
     }
   </style>
@@ -161,58 +146,78 @@
 
 <body>
 
+  <!-- Full-size NASA Eyes iframe: DO NOT crop or resize -->
+  <iframe
+    id="nasa-eyes"
+    src="https://eyes.nasa.gov/apps/earth/#/"
+    title="NASA Eyes on the Earth"
+    allow="accelerometer; fullscreen"
+    allowfullscreen
+    loading="eager">
+  </iframe>
+
+  <!-- Hide NASA's loading / camera-start animation -->
+  <div id="startup-shield" aria-hidden="true"></div>
+
+  <!-- Our header sits OVER NASA's original top area -->
   <header class="custom-header">
     <div class="brand-name">TerraPulse</div>
 
     <nav class="nav">
-      <button type="button" onclick="reloadMain()">HOME</button>
-      <button type="button" onclick="reloadMain()">VITAL SIGNS</button>
+      <button type="button" onclick="goHome()">HOME</button>
+      <button type="button" onclick="goVitalSigns()">VITAL SIGNS</button>
     </nav>
   </header>
-
-  <div class="eyes-viewport">
-    <iframe
-      id="nasa-eyes"
-      src="https://eyes.nasa.gov/apps/earth/#/"
-      title="NASA Eyes on the Earth"
-      allow="accelerometer; fullscreen"
-      allowfullscreen
-      loading="eager">
-    </iframe>
-
-    <div id="startup-shield" aria-hidden="true"></div>
-  </div>
 
   <script>
     const frame = document.getElementById('nasa-eyes');
     const shield = document.getElementById('startup-shield');
 
-    const REVEAL_DELAY = 3200;
-    let revealTimer;
+    /*
+      NASA has an internal loading + camera transition.
+      We keep it hidden until that transition has settled.
+    */
+    const SETTLE_DELAY = 5200;
+    let revealTimer = null;
 
-    function revealMainView() {
+    function hideForReload() {
+      frame.classList.remove('ready');
+      shield.classList.remove('hide');
+      clearTimeout(revealTimer);
+    }
+
+    function revealSettledView() {
       clearTimeout(revealTimer);
 
       revealTimer = setTimeout(() => {
         frame.classList.add('ready');
         shield.classList.add('hide');
-      }, REVEAL_DELAY);
+      }, SETTLE_DELAY);
     }
 
-    frame.addEventListener('load', revealMainView);
+    frame.addEventListener('load', revealSettledView);
 
-    /* Safety fallback */
+    /*
+      Fallback so a slow/odd browser never remains black forever.
+    */
     setTimeout(() => {
       frame.classList.add('ready');
       shield.classList.add('hide');
-    }, 7000);
+    }, 9000);
 
-    function reloadMain() {
-      frame.classList.remove('ready');
-      shield.classList.remove('hide');
-      clearTimeout(revealTimer);
+    function loadNASA(url) {
+      hideForReload();
+      frame.src = url;
+    }
 
-      frame.src = 'https://eyes.nasa.gov/apps/earth/#/';
+    function goHome() {
+      loadNASA('https://eyes.nasa.gov/apps/earth/#/');
+    }
+
+    function goVitalSigns() {
+      loadNASA(
+        'https://eyes.nasa.gov/apps/earth/#/vitalsign?vitalsign=visible_earth&altid=0&animating=f'
+      );
     }
   </script>
 
