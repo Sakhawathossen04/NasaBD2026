@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <title>TerraPulse</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #000;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    #nasa-eyes {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      border: 0;
+      display: block;
+      background: #000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .35s ease;
+    }
+    #nasa-eyes.ready {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    #startup-shield {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 900000;
+      opacity: 1;
+      visibility: visible;
+      transition: opacity .28s ease, visibility .28s ease;
+      pointer-events: none;
+    }
+    #startup-shield.hide {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .custom-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 145px;
+      display: flex;
+      align-items: center;
+      padding: 0 48px;
+      background: #000;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      z-index: 1000000;
+    }
+    .brand-name {
+      color: #fff;
+      font-size: 38px;
+      line-height: 1;
+      font-weight: 700;
+      letter-spacing: .2px;
+      margin-right: 54px;
+      white-space: nowrap;
+    }
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 42px;
+    }
+    .nav button {
+      appearance: none;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: #fff;
+      padding: 10px 0;
+      font-size: 19px;
+      line-height: 1;
+      font-weight: 700;
+      cursor: pointer;
+      opacity: .96;
+    }
+    .nav button:hover,
+    .nav button:focus-visible {
+      opacity: 1;
+      text-decoration: underline;
+      text-underline-offset: 7px;
+    }
+
+    #our-fullscreen {
+      position: fixed;
+      right: 0;
+      bottom: 0;
+      width: 60px;
+      height: 60px;
+      border: 0;
+      outline: 0;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      background: #070a10;
+      color: #fff;
+      cursor: pointer;
+      z-index: 1000001;
+    }
+    #our-fullscreen:hover { background: #10151e; }
+    #our-fullscreen svg {
+      width: 27px;
+      height: 27px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    :fullscreen .custom-header { display: flex; }
+    :fullscreen #our-fullscreen { display: grid; }
+
+    @media (max-width: 800px) {
+      .custom-header {
+        height: 118px;
+        padding: 0 18px;
+      }
+      .brand-name {
+        font-size: 27px;
+        margin-right: 26px;
+      }
+      .nav { gap: 20px; }
+      .nav button { font-size: 14px; }
+      #our-fullscreen {
+        width: 52px;
+        height: 52px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <iframe
+    id="nasa-eyes"
+    title="NASA Eyes on the Earth"
+    allow="accelerometer; fullscreen"
+    allowfullscreen
+    loading="eager">
+  </iframe>
+
+  <div id="startup-shield" aria-hidden="true"></div>
+
+  <header class="custom-header">
+    <div class="brand-name">TerraPulse</div>
+    <nav class="nav">
+      <button type="button" id="home-btn">HOME</button>
+      <button type="button" id="vitals-btn">VITAL SIGNS</button>
+    </nav>
+  </header>
+
+  <button id="our-fullscreen" type="button" aria-label="Toggle fullscreen" title="Fullscreen">
+    <svg id="fullscreen-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M8 3H3v5"/>
+      <path d="M3 3l6 6"/>
+      <path d="M16 3h5v5"/>
+      <path d="M21 3l-6 6"/>
+      <path d="M8 21H3v-5"/>
+      <path d="M3 21l6-6"/>
+      <path d="M16 21h5v-5"/>
+      <path d="M21 21l-6-6"/>
+    </svg>
+  </button>
+
+  <script>
+    const frame = document.getElementById('nasa-eyes');
+    const shield = document.getElementById('startup-shield');
+    const homeBtn = document.getElementById('home-btn');
+    const vitalsBtn = document.getElementById('vitals-btn');
+    const fullscreenBtn = document.getElementById('our-fullscreen');
+
+    const HOME_URL =
+      'https://eyes.nasa.gov/apps/earth/#/vitalsign' +
+      '?vitalsign=visible_earth' +
+      '&altid=0' +
+      '&animating=f' +
+      '&showOnGlobe=t';
+
+    const VITALS_URL =
+      'https://eyes.nasa.gov/apps/earth/#/vitalsign' +
+      '?vitalsign=satellites' +
+      '&animating=f';
+
+    const SETTLE_DELAY = 6500;
+    let revealTimer = null;
+    let safetyTimer = null;
+
+    function showFrame() {
+      clearTimeout(revealTimer);
+      frame.classList.add('ready');
+      shield.classList.add('hide');
+    }
+
+    function beginHiddenLoad(url) {
+      clearTimeout(revealTimer);
+      clearTimeout(safetyTimer);
+
+      frame.classList.remove('ready');
+      shield.classList.remove('hide');
+
+      frame.src = url;
+
+      safetyTimer = setTimeout(() => {
+        showFrame();
+      }, 11000);
+    }
+
+    frame.addEventListener('load', () => {
+      clearTimeout(revealTimer);
+      revealTimer = setTimeout(() => {
+        showFrame();
+      }, SETTLE_DELAY);
+    });
+
+    homeBtn.addEventListener('click', () => {
+      beginHiddenLoad(HOME_URL);
+    });
+
+    vitalsBtn.addEventListener('click', () => {
+      beginHiddenLoad(VITALS_URL);
+    });
+
+    beginHiddenLoad(HOME_URL);
+
+    async function toggleFullscreen() {
+      try {
+        if (!document.fullscreenElement) {
+          await document.documentElement.requestFullscreen();
+        } else {
+          await document.exitFullscreen();
+        }
+      } catch (err) {
+        console.error('Fullscreen request failed:', err);
+      }
+    }
+
+    fullscreenBtn.addEventListener('click', toggleFullscreen);
+
+    document.addEventListener('fullscreenchange', () => {
+      const icon = document.getElementById('fullscreen-icon');
+      if (document.fullscreenElement) {
+        icon.innerHTML = `
+          <path d="M9 9H4V4"/>
+          <path d="M4 9l5-5"/>
+          <path d="M15 9h5V4"/>
+          <path d="M20 9l-5-5"/>
+          <path d="M9 15H4v5"/>
+          <path d="M4 15l5 5"/>
+          <path d="M15 15h5v5"/>
+          <path d="M20 15l-5 5"/>
+        `;
+      } else {
+        icon.innerHTML = `
+          <path d="M8 3H3v5"/>
+          <path d="M3 3l6 6"/>
+          <path d="M16 3h5v5"/>
+          <path d="M21 3l-6 6"/>
+          <path d="M8 21H3v-5"/>
+          <path d="M3 21l6-6"/>
+          <path d="M16 21h5v-5"/>
+          <path d="M21 21l-6-6"/>
+        `;
+      }
+    });
+  </script>
+
+</body>
+</html>
