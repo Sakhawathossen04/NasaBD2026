@@ -4,17 +4,23 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#000000" />
-  <title>NASA Eyes on the Earth</title>
+  <title>Earth Explorer</title>
+
   <style>
-    html, body {
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
       width: 100%;
       height: 100%;
       margin: 0;
-      padding: 0;
       overflow: hidden;
       background: #000;
     }
 
+    /* Official NASA Eyes app */
     #nasa-eyes {
       position: fixed;
       inset: 0;
@@ -24,8 +30,66 @@
       display: block;
       background: #000;
     }
+
+    /*
+      We cannot edit NASA's internal iframe DOM because it is cross-origin.
+      These two black masks visually remove + block the other header items,
+      while leaving the original VITAL SIGNS and MISSIONS area exposed/clickable.
+    */
+
+    .header-mask-left,
+    .header-mask-right {
+      position: fixed;
+      top: 0;
+      height: 112px;
+      background: #000;
+      z-index: 999999;
+      pointer-events: auto; /* blocks clicks on hidden NASA controls */
+      cursor: default;
+    }
+
+    /*
+      Transparent window left exposed:
+      approximately the original "VITAL SIGNS" + "MISSIONS" area.
+      Tuned for the current desktop NASA Eyes layout.
+    */
+    .header-mask-left {
+      left: 0;
+      right: 715px;
+    }
+
+    .header-mask-right {
+      right: 0;
+      width: 405px;
+    }
+
+    /* On narrower desktop screens, slightly widen the exposed area */
+    @media (max-width: 1500px) {
+      .header-mask-left {
+        right: 625px;
+      }
+
+      .header-mask-right {
+        width: 345px;
+      }
+    }
+
+    /* On mobile/tablet NASA's own header layout changes substantially.
+       Hide the original header completely instead of exposing wrong items. */
+    @media (max-width: 900px) {
+      .header-mask-left {
+        left: 0;
+        right: 0;
+        width: 100%;
+      }
+
+      .header-mask-right {
+        display: none;
+      }
+    }
   </style>
 </head>
+
 <body>
   <iframe
     id="nasa-eyes"
@@ -35,5 +99,9 @@
     allowfullscreen
     loading="eager">
   </iframe>
+
+  <!-- Hide everything in NASA's top navigation except VITAL SIGNS + MISSIONS -->
+  <div class="header-mask-left" aria-hidden="true"></div>
+  <div class="header-mask-right" aria-hidden="true"></div>
 </body>
 </html>
