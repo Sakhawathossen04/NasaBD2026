@@ -4,21 +4,23 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#000000" />
-  <title>TerraPulse | Earth Motion Explorer</title>
+  <title>Earth Explorer</title>
 
   <style>
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
-    html, body {
+    html,
+    body {
       width: 100%;
       height: 100%;
       margin: 0;
       overflow: hidden;
       background: #000;
-      font-family: Arial, Helvetica, sans-serif;
     }
 
-    /* NASA Eyes visual engine */
+    /* Official NASA Eyes app */
     #nasa-eyes {
       position: fixed;
       inset: 0;
@@ -27,177 +29,68 @@
       border: 0;
       display: block;
       background: #000;
-
-      /* IMPORTANT:
-         Keep NASA's startup/loading screen invisible. */
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.45s ease;
     }
 
-    #nasa-eyes.ready {
-      opacity: 1;
-      visibility: visible;
-    }
+    /*
+      We cannot edit NASA's internal iframe DOM because it is cross-origin.
+      These two black masks visually remove + block the other header items,
+      while leaving the original VITAL SIGNS and MISSIONS area exposed/clickable.
+    */
 
-    /* Black startup shield.
-       It covers NASA's own EYES ON THE EARTH / LOADING splash. */
-    #startup-shield {
-      position: fixed;
-      inset: 0;
-      background: #000;
-      z-index: 999997;
-      opacity: 1;
-      visibility: visible;
-      transition: opacity 0.4s ease, visibility 0.4s ease;
-      pointer-events: none;
-    }
-
-    #startup-shield.hide {
-      opacity: 0;
-      visibility: hidden;
-    }
-
-    /* Cover NASA's original top navigation */
-    .top-cover {
+    .header-mask-left,
+    .header-mask-right {
       position: fixed;
       top: 0;
-      left: 0;
-      right: 0;
-      height: 105px;
-      background: #000;
-      z-index: 999998;
-      pointer-events: auto;
-    }
-
-    /* Cover the orange "LATEST EVENT" headline */
-    .event-cover {
-      position: fixed;
-      top: 92px;
-      left: 18%;
-      right: 18%;
-      height: 90px;
-      background: #000;
-      z-index: 999998;
-      pointer-events: none;
-    }
-
-    /* Our header */
-    .custom-header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 90px;
-      display: flex;
-      align-items: center;
-      padding: 0 30px;
+      height: 112px;
       background: #000;
       z-index: 999999;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
+      pointer-events: auto; /* blocks clicks on hidden NASA controls */
+      cursor: default;
     }
 
-    .brand {
-      display: flex;
-      align-items: baseline;
-      gap: 12px;
-      margin-right: 38px;
-      white-space: nowrap;
+    /*
+      Transparent window left exposed:
+      approximately the original "VITAL SIGNS" + "MISSIONS" area.
+      Tuned for the current desktop NASA Eyes layout.
+    */
+    .header-mask-left {
+      left: 0;
+      right: 715px;
     }
 
-    .brand-name {
-      color: #fff;
-      font-size: 30px;
-      font-weight: 700;
-      letter-spacing: 0.4px;
+    .header-mask-right {
+      right: 0;
+      width: 405px;
     }
 
-    .brand-tagline {
-      color: #9aa7b7;
-      font-size: 14px;
-      font-weight: 500;
-      letter-spacing: 0.5px;
-    }
-
-    .nav {
-      display: flex;
-      align-items: center;
-      gap: 26px;
-    }
-
-    .nav button {
-      appearance: none;
-      border: 0;
-      outline: 0;
-      background: transparent;
-      color: #fff;
-      padding: 8px 0;
-      font-size: 16px;
-      font-weight: 700;
-      letter-spacing: 0.3px;
-      cursor: pointer;
-      opacity: 0.95;
-    }
-
-    .nav button:hover {
-      opacity: 1;
-      text-decoration: underline;
-      text-underline-offset: 6px;
-    }
-
-    .source-note {
-      position: fixed;
-      right: 12px;
-      bottom: 8px;
-      z-index: 999999;
-      color: rgba(255,255,255,0.48);
-      font-size: 10px;
-      pointer-events: none;
-    }
-
-    @media (max-width: 800px) {
-      .custom-header {
-        height: 82px;
-        padding: 0 16px;
+    /* On narrower desktop screens, slightly widen the exposed area */
+    @media (max-width: 1500px) {
+      .header-mask-left {
+        right: 625px;
       }
 
-      .top-cover {
-        height: 96px;
+      .header-mask-right {
+        width: 345px;
       }
+    }
 
-      .event-cover {
-        top: 82px;
+    /* On mobile/tablet NASA's own header layout changes substantially.
+       Hide the original header completely instead of exposing wrong items. */
+    @media (max-width: 900px) {
+      .header-mask-left {
         left: 0;
         right: 0;
-        height: 95px;
+        width: 100%;
       }
 
-      .brand {
-        margin-right: 20px;
-      }
-
-      .brand-name {
-        font-size: 22px;
-      }
-
-      .brand-tagline {
+      .header-mask-right {
         display: none;
-      }
-
-      .nav {
-        gap: 16px;
-      }
-
-      .nav button {
-        font-size: 14px;
       }
     }
   </style>
 </head>
 
 <body>
-
-  <!-- NASA app starts hidden -->
   <iframe
     id="nasa-eyes"
     src="https://eyes.nasa.gov/apps/earth/#/"
@@ -207,73 +100,8 @@
     loading="eager">
   </iframe>
 
-  <!-- Prevent NASA's startup splash from ever being visible -->
-  <div id="startup-shield" aria-hidden="true"></div>
-
-  <!-- Hide NASA branding/navigation and latest-event headline -->
-  <div class="top-cover" aria-hidden="true"></div>
-  <div class="event-cover" aria-hidden="true"></div>
-
-  <!-- Our own header -->
-  <header class="custom-header">
-    <div class="brand">
-      <div class="brand-name">TerraPulse</div>
-      <div class="brand-tagline">Earth Motion Explorer</div>
-    </div>
-
-    <nav class="nav">
-      <button type="button" onclick="reloadMain()">HOME</button>
-      <button type="button" onclick="reloadMain()">VITAL SIGNS</button>
-    </nav>
-  </header>
-
-  <div class="source-note">
-    Embedded visualization: NASA Eyes on the Earth
-  </div>
-
-  <script>
-    const frame = document.getElementById('nasa-eyes');
-    const shield = document.getElementById('startup-shield');
-
-    /*
-      NASA Eyes shows its own internal splash for roughly 1-2 seconds.
-      Because the iframe is cross-origin, we cannot inspect that splash directly.
-      So we keep the iframe invisible long enough for the splash to finish,
-      then reveal the already-running main Earth view.
-    */
-    const REVEAL_DELAY = 3200;
-
-    let revealTimer;
-
-    function revealMainView() {
-      clearTimeout(revealTimer);
-
-      revealTimer = setTimeout(() => {
-        frame.classList.add('ready');
-        shield.classList.add('hide');
-      }, REVEAL_DELAY);
-    }
-
-    frame.addEventListener('load', revealMainView);
-
-    /*
-      Fallback: if the iframe load event behaves differently on a browser,
-      reveal after a safe maximum delay rather than leaving a black page.
-    */
-    setTimeout(() => {
-      frame.classList.add('ready');
-      shield.classList.add('hide');
-    }, 7000);
-
-    function reloadMain() {
-      frame.classList.remove('ready');
-      shield.classList.remove('hide');
-
-      clearTimeout(revealTimer);
-
-      frame.src = 'https://eyes.nasa.gov/apps/earth/#/';
-    }
-  </script>
-
+  <!-- Hide everything in NASA's top navigation except VITAL SIGNS + MISSIONS -->
+  <div class="header-mask-left" aria-hidden="true"></div>
+  <div class="header-mask-right" aria-hidden="true"></div>
 </body>
 </html>
