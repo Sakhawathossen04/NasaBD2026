@@ -2,10 +2,7 @@
 
 site : http://nasaproject-wine.vercel.app
 
-This repository does **not** copy NASA Eyes source code.
 
-It embeds the official live NASA Eyes on the Earth application full-screen
-using an iframe. NASA documents website embedding for Eyes experiences.
 
 ## Run locally
 
