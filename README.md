@@ -1,6 +1,6 @@
 # NASA Eyes on the Earth — Fullscreen Embed
 
-site : nasaproject-wine.vercel.app
+site : http://nasaproject-wine.vercel.app
 
 This repository does **not** copy NASA Eyes source code.
 
