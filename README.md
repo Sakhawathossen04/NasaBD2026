@@ -35,13 +35,4 @@ git push -u origin main
 4. Select `main` and `/ (root)`.
 5. Save.
 
-GitHub will publish the wrapper as a live website.
-
-## Important
-
-Your repository contains only the wrapper page. The NASA application,
-its JavaScript, models, imagery and other internal assets continue to load
-from `eyes.nasa.gov`.
-
-Do not represent this wrapper as an official NASA website or as your own
-implementation of NASA Eyes.
+GitHub will publish the wrapper as a live website..
