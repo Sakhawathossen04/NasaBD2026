@@ -37,11 +37,6 @@ git push -u origin main
 
 GitHub will publish the wrapper as a live website.
 
-## Vercel
-
-Import the GitHub repository into Vercel as a static project.
-No build command is required.
-
 ## Important
 
 Your repository contains only the wrapper page. The NASA application,
