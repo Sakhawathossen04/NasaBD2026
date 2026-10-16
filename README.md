@@ -33,6 +33,6 @@ git push -u origin main
 2. Go to **Settings → Pages**.
 3. Under **Build and deployment**, choose **Deploy from a branch**.
 4. Select `main` and `/ (root)`.
-5. Save.
+5. save
 
 GitHub will publish the wrapper as a live website..
